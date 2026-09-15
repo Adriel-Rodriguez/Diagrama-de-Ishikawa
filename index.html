@@ -74,6 +74,11 @@
   .close-btn:hover{background:var(--yellow);}
 
   .guide-box{ background:#F5F6FC; border-left:4px solid var(--yellow); padding:12px 14px; border-radius:0 10px 10px 0; margin-bottom:20px; font-size:13.5px; line-height:1.55; color:#33355A; }
+  .guide-box p{ margin:0 0 8px; }
+  .guide-box p:last-of-type{ margin-bottom:6px; }
+  .guide-box b{ color:var(--navy); font-weight:700; }
+  .guide-box ul{ margin:0 0 4px 18px; padding:0; }
+  .guide-box li{ margin-bottom:3px; }
   .section-title{ font-size:14px; font-weight:700; color:var(--navy); margin:0 0 10px; }
 
   .causas-list{list-style:none; margin:0 0 10px; padding:0; display:flex; flex-direction:column; gap:6px;}
@@ -191,6 +196,8 @@
       <button class="close-btn" id="closeBtn" type="button">✕</button>
     </div>
 
+    <div class="guide-box" id="guideBox"></div>
+
     <p class="section-title">Causas identificadas</p>
     <ul class="causas-list" id="causasList"></ul>
     <div class="add-row">
@@ -250,13 +257,52 @@
   }
 
   const CATS = {
-    mano_obra: { nombre: "Mano de obra" },
-    metodo: { nombre: "Método" },
-    maquinaria: { nombre: "Maquinaria" },
-    material: { nombre: "Material" },
-    medicion: { nombre: "Medición" },
-    medio_ambiente: { nombre: "Medio ambiente" }
+    mano_obra: {
+      nombre: "Mano de obra",
+      que: "Es todo lo relacionado con las personas que realizan la actividad: su capacitación, experiencia, condición física o el cumplimiento de los procedimientos.",
+      como: "Describe una causa a la vez, de forma concreta y verificable. Anota el hecho observado, no una opinión ni una generalización.",
+      datos: ["Puesto o rol de la persona involucrada", "Turno y fecha en que ocurrió", "Capacitación o competencia relacionada", "Procedimiento que no se siguió (si aplica)"]
+    },
+    metodo: {
+      nombre: "Método",
+      que: "Son los procedimientos, instrucciones de trabajo o la forma en que se ejecuta la actividad paso a paso.",
+      como: "Cita el documento o paso específico del procedimiento que falló, no existe, o se aplica distinto entre personas o turnos.",
+      datos: ["Nombre y versión del procedimiento o instrucción", "Paso específico donde ocurre la falla", "Si el método se aplica igual en todos los turnos", "Fecha de la última actualización del documento"]
+    },
+    maquinaria: {
+      nombre: "Maquinaria",
+      que: "Abarca fallas, desgaste o falta de mantenimiento y calibración de las máquinas, equipos y herramientas usadas.",
+      como: "Identifica el equipo por su nombre o número de inventario y describe el síntoma exacto observado.",
+      datos: ["Nombre o ID del equipo/herramienta", "Síntoma o falla observada", "Fecha del último mantenimiento", "Responsable del equipo"]
+    },
+    material: {
+      nombre: "Material",
+      que: "Incluye la materia prima, insumos, refacciones o proveedores que intervienen en el proceso.",
+      como: "Referencia el lote, proveedor o especificación técnica que no se cumplió, en lugar de una opinión general.",
+      datos: ["Nombre del material o insumo", "Lote o proveedor involucrado", "Especificación incumplida", "Fecha de recepción del material"]
+    },
+    medicion: {
+      nombre: "Medición",
+      que: "Se refiere a los instrumentos de medición, su calibración y la forma en que se registran los datos.",
+      como: "Indica el instrumento utilizado, cuándo fue su última calibración y el método aplicado para medir.",
+      datos: ["Instrumento o equipo de medición usado", "Fecha de la última calibración", "Método de medición aplicado", "Persona que realizó el registro"]
+    },
+    medio_ambiente: {
+      nombre: "Medio ambiente",
+      que: "Son las condiciones físicas del entorno de trabajo: temperatura, ruido, iluminación, orden y limpieza.",
+      como: "Cuantifica la condición siempre que sea posible, en lugar de describirla de forma subjetiva.",
+      datos: ["Área o zona donde ocurre", "Condición ambiental específica (temperatura, ruido, etc.)", "Valor medido, si se cuenta con uno", "Fecha y hora de la observación"]
+    }
   };
+
+  function buildGuideHTML(key){
+    const meta = CATS[key];
+    const datosHTML = meta.datos.map(d => "<li>" + escapeHtml(d) + "</li>").join("");
+    return "<p><b>¿Qué es?</b> " + escapeHtml(meta.que) + "</p>" +
+           "<p><b>¿Cómo se llena?</b> " + escapeHtml(meta.como) + "</p>" +
+           "<p style=\"margin-bottom:4px;\"><b>¿Qué datos se piden?</b></p>" +
+           "<ul>" + datosHTML + "</ul>";
+  }
 
   const STORAGE_KEY = "fishbone:data";
   let state = { problema: "", categorias: {} };
@@ -334,6 +380,7 @@
     btn.addEventListener("click", () => {
       currentCat = btn.getAttribute("data-cat");
       document.getElementById("panelTitle").textContent = CATS[currentCat].nombre;
+      document.getElementById("guideBox").innerHTML = buildGuideHTML(currentCat);
       renderCausas();
       document.getElementById("overlay").classList.add("open");
     });
